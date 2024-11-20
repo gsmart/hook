@@ -1,10 +1,12 @@
 {
     "version": 2,
     "builds": [
-      { "src": "api/hook/listen.js", "use": "@vercel/node" }
+      { "src": "api/index.js", "use": "@vercel/node" },
+      { "src": "api/hook.js", "use": "@vercel/node" }
     ],
     "routes": [
-      { "src": "/api/(.*)", "dest": "/api/hook/listen.js" }
+      { "src": "/api/hook/listen", "dest": "/api/hook.js" },
+      { "src": "/.*", "dest": "/api/index.js" }
     ]
   }
   
