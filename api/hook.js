@@ -1,39 +1,33 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const axios = require('axios');
 
 const app = express();
 app.use(express.json()); // Middleware for parsing JSON
 
-// Ensure logs directory exists
-const logsDir = path.join(__dirname, '../logs');
-if (!fs.existsSync(logsDir)) {
-    fs.mkdirSync(logsDir);
-}
+// Loggly configuration
+const LOGGLY_TOKEN = 'a8dd9373-27c2-4457-b0cd-5b4a7d19e272'; // Replace with your Loggly token
+const LOGGLY_URL = `https://logs-01.loggly.com/inputs/${LOGGLY_TOKEN}/tag/http/`;
 
 app.all('/api/hook/listen', (req, res) => {
-    const timestamp = new Date();
-    const fileName = `log_${timestamp.getDate()}${String(timestamp.getMonth() + 1).padStart(2, '0')}${timestamp.getFullYear()}${timestamp.getHours()}${timestamp.getMinutes()}${timestamp.getSeconds()}.txt`;
-    const logFilePath = path.join(logsDir, fileName);
-
     const logData = {
         method: req.method,
         headers: req.headers,
         body: req.body,
         query: req.query,
         url: req.url,
-        timestamp: timestamp.toISOString()
+        timestamp: new Date().toISOString()
     };
 
-    // Write request data to a log file
-    fs.writeFile(logFilePath, JSON.stringify(logData, null, 2), (err) => {
-        if (err) {
-            console.error(`Failed to write log file: ${err.message}`);
-            return res.status(500).send('Internal Server Error');
-        }
-        console.log(`Log saved to ${fileName}`);
-        res.send('Request logged successfully.');
-    });
+    // Send log data to Loggly
+    axios.post(LOGGLY_URL, logData)
+        .then(response => {
+            console.log('Log sent to Loggly:', response.data);
+            res.send('Request logged successfully.');
+        })
+        .catch(error => {
+            console.error('Failed to send log to Loggly:', error.message);
+            res.status(500).send('Failed to log request.');
+        });
 });
 
 module.exports = app;
