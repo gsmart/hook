@@ -1,20 +1,16 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const bodyParser = require('body-parser');
-const app = express();
 
-// Middleware for parsing incoming JSON and URL-encoded data
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+const app = express();
+app.use(express.json()); // Middleware for parsing JSON
 
 // Ensure logs directory exists
-const logsDir = path.join(__dirname, 'logs');
+const logsDir = path.join(__dirname, '../logs');
 if (!fs.existsSync(logsDir)) {
     fs.mkdirSync(logsDir);
 }
 
-// Route to handle requests
 app.all('/api/hook/listen', (req, res) => {
     const timestamp = new Date();
     const fileName = `log_${timestamp.getDate()}${String(timestamp.getMonth() + 1).padStart(2, '0')}${timestamp.getFullYear()}${timestamp.getHours()}${timestamp.getMinutes()}${timestamp.getSeconds()}.txt`;
